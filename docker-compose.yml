@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  # FrankenPHP (Caddy + PHP + Coraza WAF + Souin Cache)
+  wordpress:
+    build: ./frankenphp
+    container_name: wp-frankenphp
+    restart: unless-stopped
+    environment:
+      SERVER_NAME: ":80"
+    ports:
+      - "10081:80"
+      - "10443:443"
+    volumes:
+      - ./data:/var/www/html
+      - ./frankenphp/Caddyfile:/etc/frankenphp/Caddyfile:ro
+      - ./frankenphp/coraza/coraza.conf:/etc/caddy/coraza.conf:ro
+      - ./frankenphp/coraza/wp-exclusions.conf:/etc/caddy/wp-exclusions.conf:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - wpnet
+
+networks:
+  wpnet:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:

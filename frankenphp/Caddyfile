@@ -1,0 +1,109 @@
+{
+    # ============================================================
+    # FrankenPHP 全局配置
+    # ============================================================
+    frankenphp {
+        num_threads 16
+        # 注意: 标准 WordPress 不支持 worker 模式
+        # worker /var/www/html/index.php num_threads 8
+    }
+
+    # ============================================================
+    # 模块执行顺序 (CRITICAL)
+    # ============================================================
+    # WAF 必须在最前 - 在任何请求处理之前拦截恶意流量
+    order coraza_waf first
+    # 缓存模块在 WAF 之后 - 缓存合法响应
+    order cache before encode
+
+    # ============================================================
+    # Souin 全页缓存配置
+    # ============================================================
+    # 缓存匿名用户的 GET 请求 15 分钟
+    # 绕过: wp-admin, wp-login, wp-cron, xmlrpc, 预览页面
+    cache {
+        ttl 15m
+        stale 1h
+        default_cache_control public
+        regex {
+            exclude "/wp-admin.*|/wp-login.php|/wp-cron.php|/xmlrpc.php|/\?.*preview=true"
+        }
+        log_level warn
+    }
+
+    # ============================================================
+    # HTTPS 配置
+    # ============================================================
+    # 如果你有域名，取消下面这行注释让 Caddy 自动申请证书
+    # auto_https on
+    # 如果在反向代理后使用 80 端口，关闭自动 HTTPS
+    auto_https off
+}
+
+# ============================================================
+# 站点配置
+# ============================================================
+{$SERVER_NAME} {
+    root * /var/www/html
+    encode zstd gzip
+
+    # ============================================================
+    # Coraza WAF (ModSecurity 兼容的 Go 原生 WAF)
+    # ============================================================
+    coraza_waf {
+        load_owasp_crs
+        directives `
+            Include @coraza.conf-recommended
+            Include /etc/caddy/coraza.conf
+            Include /etc/caddy/crs/crs-setup.conf
+            Include /etc/caddy/wp-exclusions.conf
+            Include @owasp_crs/*.conf
+        `
+    }
+
+    # ============================================================
+    # 启用全页缓存
+    # ============================================================
+    cache
+
+    # ============================================================
+    # 静态资源缓存 (CSS, JS, 字体, 图标)
+    # ============================================================
+    @static path *.css *.js *.woff *.woff2 *.ttf *.eot *.ico *.svg
+    header @static Cache-Control "public, max-age=2592000, immutable"
+    header @static X-Content-Type-Options nosniff
+
+    @images path *.jpg *.jpeg *.png *.gif *.webp *.avif
+    header @images Cache-Control "public, max-age=2592000, immutable"
+    header @images X-Content-Type-Options nosniff
+
+    # ============================================================
+    # 安全头
+    # ============================================================
+    header Strict-Transport-Security "max-age=31536000; includeSubDomains" always
+    header X-Frame-Options "SAMEORIGIN" always
+    header X-XSS-Protection "1; mode=block" always
+    header X-Content-Type-Options "nosniff" always
+    header Referrer-Policy "strict-origin-when-cross-origin" always
+    header Permissions-Policy "geolocation=(), microphone=(), camera=()" always
+
+    # ============================================================
+    # 敏感文件保护
+    # ============================================================
+    @hidden path /wp-config.php /.git/* /.env* /readme.html /license.txt
+    respond @hidden 403
+
+    # ============================================================
+    # WordPress PHP 处理
+    # ============================================================
+    php_server
+
+    # ============================================================
+    # 日志
+    # ============================================================
+    log {
+        output stdout
+        format console
+        level INFO
+    }
+}

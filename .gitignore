@@ -1,0 +1,19 @@
+# WordPress 站点源码（由 install-wordpress.sh 自动下载，不纳入版本控制）
+/data/
+
+# 自动生成的环境变量配置（包含密码等敏感信息，请勿提交）
+/.env
+
+# macOS
+.DS_Store
+._*
+
+# IDE / 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 日志与临时文件
+*.log
+tmp/
