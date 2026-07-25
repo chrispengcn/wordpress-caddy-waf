@@ -15,12 +15,15 @@
 
 ## 🚀 快速部署
 
-### 1. 上传项目到服务器
-将整个 `wordpress-caddy-waf` 目录复制到你的服务器：
+### 1. 克隆项目到服务器
+在服务器上克隆本仓库：
 
 ```bash
-scp -r wordpress-caddy-waf user@your-server:/opt/
+git clone https://github.com/chrispengcn/wordpress-caddy-waf.git /opt/wordpress-caddy-waf
+cd /opt/wordpress-caddy-waf
 ```
+
+> 后续更新代码只需在服务器上执行 `git pull` 即可。
 
 ### 2. 初始化配置
 
