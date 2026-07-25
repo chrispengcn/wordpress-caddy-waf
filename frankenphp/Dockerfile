@@ -1,19 +1,16 @@
 # ============================================================
-# 多阶段构建 FrankenPHP + Coraza WAF + Souin Cache
+# 多阶段构建 FrankenPHP + Coraza WAF
+# 基于 dunglas/frankenphp:1.12.0-php8.3-bookworm，仅添加 Coraza WAF 模块
 # ============================================================
 
-# Stage 1: 构建 FrankenPHP + Coraza WAF 模块
-FROM dunglas/frankenphp:1-builder-php8.3-alpine AS builder
-
-# 从官方 caddy builder 镜像复制 xcaddy
-COPY --from=caddy:2.8-builder /usr/bin/xcaddy /usr/bin/xcaddy
+# Stage 1: 重新编译 FrankenPHP，仅添加 Coraza WAF 模块（不含 Souin，节省编译时间）
+FROM dunglas/frankenphp:1.12.0-builder-php8.3-bookworm AS builder
 
 ENV CGO_ENABLED=1 \
     XCADDY_SETCAP=1 \
-    XCADDY_GO_BUILD_FLAGS="-ldflags='-w -s' -tags=nobadger,nomysql,nopgx"
+    XCADDY_GO_BUILD_FLAGS="-ldflags='-w -s'"
 
-# 构建带有 Coraza WAF、Souin Cache 模块的 FrankenPHP
-# CGO 需要 PHP 头文件路径，从 php-config 动态获取
+# 只添加 Coraza WAF 模块，不再编译 Souin
 RUN CGO_CFLAGS="$(php-config --includes)" \
     CGO_LDFLAGS="$(php-config --ldflags) $(php-config --libs)" \
     xcaddy build \
@@ -22,8 +19,7 @@ RUN CGO_CFLAGS="$(php-config --includes)" \
       --with github.com/dunglas/frankenphp/caddy=./caddy/ \
       --with github.com/dunglas/mercure/caddy \
       --with github.com/dunglas/vulcain/caddy \
-      --with github.com/corazawaf/coraza-caddy/v2 \
-      --with github.com/darkweak/souin/plugins/caddy
+      --with github.com/corazawaf/coraza-caddy/v2
 
 # ============================================================
 # Stage 2: 下载 OWASP CRS 规则集
@@ -45,12 +41,14 @@ RUN git clone --depth=1 \
       /rules/wp-exclusions
 
 # ============================================================
-# Stage 3: 运行时镜像
+# Stage 3: 运行时镜像（基于官方预编译镜像，无需重新编译 PHP）
 # ============================================================
-FROM dunglas/frankenphp:1-php8.3-alpine
+FROM dunglas/frankenphp:1.12.0-php8.3-bookworm
 
-# 安装系统依赖
-RUN apk add --no-cache bash curl ghostscript imagemagick
+# 安装系统依赖 (Debian bookworm)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    bash curl ghostscript imagemagick \
+  && rm -rf /var/lib/apt/lists/*
 
 # 安装 PHP 扩展 (WordPress 推荐)
 RUN install-php-extensions \
@@ -64,7 +62,7 @@ RUN install-php-extensions \
     redis \
     imagick
 
-# 复制编译好的 FrankenPHP 二进制
+# 复制编译好的 FrankenPHP 二进制（含 Coraza WAF 模块）
 COPY --from=builder /usr/local/bin/frankenphp /usr/local/bin/frankenphp
 
 # 复制 WAF 规则

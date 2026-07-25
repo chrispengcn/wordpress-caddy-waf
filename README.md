@@ -14,7 +14,6 @@
 |------|------|
 | **FrankenPHP** | Caddy + 嵌入式 PHP 8.3，高性能现代 PHP 运行时 |
 | **Coraza WAF** | Go 原生 ModSecurity 兼容 WAF + OWASP CRS 4.x 规则 |
-| **Souin Cache** | 全页 HTTP 缓存，大幅提升 WordPress 响应速度 |
 | **HTML Minifier** | 实时压缩 PHP 生成的 HTML 输出 |
 | **imgproxy** | 实时图片格式转换 (JPG/PNG → WebP/AVIF) |
 | **MariaDB 10.11** | 官方推荐的 WordPress 数据库 |
@@ -140,24 +139,20 @@ SecRuleEngine On
 
 #### 已启用的优化
 
-1. **全页缓存 (Souin)**
-   - 匿名用户 GET 请求缓存 15 分钟
-   - 绕过 wp-admin、wp-login 等动态页面
-
-2. **HTML 实时压缩**
+1. **HTML 实时压缩**
    - 移除注释、空白字符、冗余引号
    - CSS/JS 不处理（由主题/插件预压缩）
 
-3. **图片优化 (imgproxy)**
+2. **图片优化 (imgproxy)**
    - 自动转换为 WebP/AVIF 格式
    - 根据浏览器支持智能选择
    - 图片大小减少 30-50%
 
-4. **静态资源缓存**
+3. **静态资源缓存**
    - CSS/JS/字体/图标 30 天强缓存
    - 正确的 Cache-Control 头
 
-5. **PHP OPcache**
+4. **PHP OPcache**
    - 预编译 PHP 字节码
    - 内存缓存，减少磁盘 IO
 
@@ -191,7 +186,7 @@ docker logs wp-frontend 2>&1 | grep -i 'ModSecurity\|coraza'
 
 #### 首次构建很慢？
 正常，第一次需要：
-- 下载 Go 依赖并编译 Coraza/Souin/Minifier 模块
+- 下载 Go 依赖并编译 Coraza 模块
 - 编译 PHP 扩展
 - Git 克隆 OWASP CRS 规则集
 - 后续构建有缓存，只需几秒
@@ -232,7 +227,6 @@ A modern WordPress deployment solution based on Docker Compose, integrating comp
 |-----------|-------------|
 | **FrankenPHP** | Caddy + embedded PHP 8.3, high-performance modern PHP runtime |
 | **Coraza WAF** | Go-native ModSecurity-compatible WAF + OWASP CRS 4.x rules |
-| **Souin Cache** | Full-page HTTP cache, significantly boosting WordPress response speed |
 | **HTML Minifier** | Real-time compression of PHP-generated HTML output |
 | **imgproxy** | Real-time image format conversion (JPG/PNG → WebP/AVIF) |
 | **MariaDB 10.11** | Officially recommended WordPress database |
@@ -358,24 +352,20 @@ Expected results:
 
 #### Enabled Optimizations
 
-1. **Full-Page Cache (Souin)**
-   - Cache anonymous user GET requests for 15 minutes
-   - Bypass dynamic pages like wp-admin, wp-login
-
-2. **Real-time HTML Compression**
+1. **Real-time HTML Compression**
    - Remove comments, whitespace, redundant quotes
    - CSS/JS not processed (pre-compressed by themes/plugins)
 
-3. **Image Optimization (imgproxy)**
+2. **Image Optimization (imgproxy)**
    - Auto-convert to WebP/AVIF formats
    - Smart selection based on browser support
    - Image size reduced by 30-50%
 
-4. **Static Asset Caching**
+3. **Static Asset Caching**
    - 30-day strong caching for CSS/JS/fonts/icons
    - Proper Cache-Control headers
 
-5. **PHP OPcache**
+4. **PHP OPcache**
    - Pre-compiled PHP bytecode
    - In-memory cache, reducing disk IO
 
@@ -409,7 +399,7 @@ docker logs wp-frontend 2>&1 | grep -i 'ModSecurity\|coraza'
 
 #### First build is slow?
 Normal, the first time requires:
-- Downloading Go dependencies and compiling Coraza/Souin/Minifier modules
+- Downloading Go dependencies and compiling the Coraza module
 - Compiling PHP extensions
 - Git cloning the OWASP CRS ruleset
 - Subsequent builds have cache and take only seconds

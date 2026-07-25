@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # FrankenPHP (Caddy + PHP + Coraza WAF + Souin Cache)
+  # FrankenPHP (Caddy + PHP + Coraza WAF)
   wordpress:
     build: ./frankenphp
     container_name: wp-frankenphp
