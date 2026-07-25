@@ -15,8 +15,8 @@ echo "=========================================="
 # -----------------------------------------------------------------------------
 if [ -z "$(ls -A /var/www/html)" ]; then
     echo "[init] /var/www/html 目录为空"
-    echo "[init] 请手动部署 WordPress 到 ./data 目录"
-    echo "[init] 示例: cd ./data && wget https://wordpress.org/latest.tar.gz && tar -xzf latest.tar.gz --strip-components=1"
+    echo "[init] 请将 WordPress 源码放入 ./data 目录"
+    echo "[init] 示例: wget https://wordpress.org/latest.tar.gz && tar -xzf latest.tar.gz --strip-components=1 -C ./data"
 fi
 
 # -----------------------------------------------------------------------------

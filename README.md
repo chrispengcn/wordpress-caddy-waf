@@ -30,7 +30,19 @@ cd /opt/wordpress-caddy-waf
 
 > 后续更新代码只需在服务器上执行 `git pull` 即可。
 
-#### 2. 初始化配置
+#### 2. 准备 WordPress 源码
+将 WordPress 源码放入 `./data` 目录（本仓库不包含 WordPress 源码）：
+
+```bash
+cd /opt/wordpress-caddy-waf
+mkdir -p data && cd data
+wget https://wordpress.org/latest.tar.gz
+tar -xzf latest.tar.gz --strip-components=1
+rm latest.tar.gz
+cd ..
+```
+
+#### 3. 初始化配置
 
 ```bash
 cd /opt/wordpress-caddy-waf
@@ -43,7 +55,7 @@ chmod +x deploy.sh
 - 生成随机密码和 imgproxy 密钥
 - 构建 Docker 镜像（约 5-8 分钟）
 
-#### 3. 编辑配置
+#### 4. 编辑配置
 
 ```bash
 nano .env
@@ -55,13 +67,13 @@ nano .env
 - `WORDPRESS_DB_PASSWORD` - 与上面相同
 - （可选）设置 `SERVER_NAME` 为你的域名启用 HTTPS
 
-#### 4. 启动服务
+#### 5. 启动服务
 
 ```bash
 ./deploy.sh start
 ```
 
-#### 5. 完成 WordPress 安装
+#### 6. 完成 WordPress 安装
 
 浏览器访问：`http://your-server-ip/`
 
@@ -243,7 +255,19 @@ cd /opt/wordpress-caddy-waf
 
 > To update the code later, simply run `git pull` on the server.
 
-#### 2. Initialize Configuration
+#### 2. Prepare WordPress Source
+Place the WordPress source into the `./data` directory (this repository does not include WordPress source):
+
+```bash
+cd /opt/wordpress-caddy-waf
+mkdir -p data && cd data
+wget https://wordpress.org/latest.tar.gz
+tar -xzf latest.tar.gz --strip-components=1
+rm latest.tar.gz
+cd ..
+```
+
+#### 3. Initialize Configuration
 
 ```bash
 cd /opt/wordpress-caddy-waf
@@ -256,7 +280,7 @@ The first run will automatically:
 - Generate random passwords and imgproxy keys
 - Build the Docker image (about 5-8 minutes)
 
-#### 3. Edit Configuration
+#### 4. Edit Configuration
 
 ```bash
 nano .env
@@ -268,13 +292,13 @@ Modify:
 - `WORDPRESS_DB_PASSWORD` - Same as above
 - (Optional) Set `SERVER_NAME` to your domain to enable HTTPS
 
-#### 4. Start Services
+#### 5. Start Services
 
 ```bash
 ./deploy.sh start
 ```
 
-#### 5. Complete WordPress Installation
+#### 6. Complete WordPress Installation
 
 Visit in your browser: `http://your-server-ip/`
 
