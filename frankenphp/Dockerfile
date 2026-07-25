@@ -13,15 +13,13 @@ ENV CGO_ENABLED=1 \
     XCADDY_SETCAP=1 \
     XCADDY_GO_BUILD_FLAGS="-ldflags='-w -s'"
 
-# 只添加 Coraza WAF 模块，不再编译 Souin
+# 只添加 Coraza WAF 模块（不含 Souin/Mercure/Vulcain，节省编译时间和内存）
 RUN CGO_CFLAGS="$(php-config --includes)" \
     CGO_LDFLAGS="$(php-config --ldflags) $(php-config --libs)" \
     xcaddy build \
       --output /usr/local/bin/frankenphp \
       --with github.com/dunglas/frankenphp=./ \
       --with github.com/dunglas/frankenphp/caddy=./caddy/ \
-      --with github.com/dunglas/mercure/caddy \
-      --with github.com/dunglas/vulcain/caddy \
       --with github.com/corazawaf/coraza-caddy/v2
 
 # ============================================================
@@ -88,9 +86,9 @@ RUN { \
   { \
     echo 'opcache.enable=1'; \
     echo 'opcache.enable_cli=0'; \
-    echo 'opcache.memory_consumption=256'; \
-    echo 'opcache.interned_strings_buffer=16'; \
-    echo 'opcache.max_accelerated_files=20000'; \
+    echo 'opcache.memory_consumption=128'; \
+    echo 'opcache.interned_strings_buffer=8'; \
+    echo 'opcache.max_accelerated_files=10000'; \
     echo 'opcache.max_wasted_percentage=10'; \
     echo 'opcache.revalidate_freq=120'; \
     echo 'opcache.validate_timestamps=1'; \
