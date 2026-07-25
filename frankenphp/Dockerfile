@@ -6,6 +6,9 @@
 # Stage 1: 重新编译 FrankenPHP，仅添加 Coraza WAF 模块（不含 Souin，节省编译时间）
 FROM dunglas/frankenphp:1.12.0-builder-php8.3-bookworm AS builder
 
+# 从官方 caddy builder 镜像复制 xcaddy（frankenphp builder 不自带）
+COPY --from=caddy:2.8-builder /usr/bin/xcaddy /usr/bin/xcaddy
+
 ENV CGO_ENABLED=1 \
     XCADDY_SETCAP=1 \
     XCADDY_GO_BUILD_FLAGS="-ldflags='-w -s'"
