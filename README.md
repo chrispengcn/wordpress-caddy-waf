@@ -212,7 +212,35 @@ docker logs wp-frontend 2>&1 | grep -i 'ModSecurity\|coraza'
 imgproxy 需要 WordPress 插件配合重写图片 URL，或者可以直接用默认方式，imgproxy 作为可选增强。
 
 #### HTTPS/SSL 证书？
+
+**场景 A：Caddy 直接终止 TLS（推荐，最简单）**
+
 设置 `SERVER_NAME` 为你的域名并在 `Caddyfile` 中启用 `auto_https on`，Caddy 会自动从 Let's Encrypt 申请证书。
+
+**场景 B：前置反向代理终止 TLS（如 Nginx/OpenResty/Cloudflare）**
+
+当 Caddy 作为 HTTP 后端运行在反向代理后面时（例如 `浏览器 → Nginx(443) → Caddy(10081)`），WordPress 的 `is_ssl()` 函数无法识别 HTTPS，会导致 `wp-admin` 出现重定向循环。
+
+**解决方法**：在 `wp-config.php` 中 `/* That's all, stop editing! */` 行**之前**添加以下代码：
+
+```php
+// 反向代理 HTTPS 检测（让 WordPress 识别前置代理的 HTTPS）
+if ( ! empty( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && 'https' === $_SERVER['HTTP_X_FORWARDED_PROTO'] ) {
+    $_SERVER['HTTPS'] = 'on';
+}
+// 强制 SSL 登录和后台
+define( 'FORCE_SSL_ADMIN', true );
+define( 'FORCE_SSL_LOGIN', true );
+```
+
+同时确保反向代理转发以下头：
+```nginx
+proxy_set_header Host $host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto $scheme;  # 关键：让后端知道是 https
+proxy_set_header X-Forwarded-Ssl on;
+```
 
 ### 📝 配置修改后
 
@@ -437,7 +465,35 @@ Normal, the first time requires:
 imgproxy requires a WordPress plugin to rewrite image URLs, or you can use the default method. imgproxy is an optional enhancement.
 
 #### HTTPS/SSL Certificate?
+
+**Scenario A: Caddy terminates TLS directly (recommended, simplest)**
+
 Set `SERVER_NAME` to your domain and enable `auto_https on` in the `Caddyfile`. Caddy will automatically request a certificate from Let's Encrypt.
+
+**Scenario B: TLS terminated by a reverse proxy (e.g., Nginx/OpenResty/Cloudflare)**
+
+When Caddy runs as an HTTP backend behind a reverse proxy (e.g., `browser → Nginx(443) → Caddy(10081)`), WordPress's `is_ssl()` function cannot detect HTTPS, which causes redirect loops in `wp-admin`.
+
+**Solution**: Add the following code to `wp-config.php` **before** the `/* That's all, stop editing! */` line:
+
+```php
+// Reverse proxy HTTPS detection (let WordPress recognize HTTPS from proxy)
+if ( ! empty( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && 'https' === $_SERVER['HTTP_X_FORWARDED_PROTO'] ) {
+    $_SERVER['HTTPS'] = 'on';
+}
+// Force SSL for admin and login
+define( 'FORCE_SSL_ADMIN', true );
+define( 'FORCE_SSL_LOGIN', true );
+```
+
+Also ensure your reverse proxy forwards these headers:
+```nginx
+proxy_set_header Host $host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto $scheme;  # Critical: tells backend it's https
+proxy_set_header X-Forwarded-Ssl on;
+```
 
 ### 📝 After Configuration Changes
 
